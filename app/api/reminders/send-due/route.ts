@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processDueRemindersAdmin } from "@/lib/reminders/process-due-admin";
 
-export async function POST(request: NextRequest) {
+function isAuthorizedCronRequest(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const expectedSecret = process.env.CRON_SECRET;
+  const userAgent = request.headers.get("user-agent") ?? "";
 
-  if (!expectedSecret) {
-    return NextResponse.json({ error: "Missing CRON_SECRET" }, { status: 500 });
+  if (expectedSecret && authHeader === `Bearer ${expectedSecret}`) {
+    return true;
   }
 
-  if (authHeader !== `Bearer ${expectedSecret}`) {
+  return process.env.VERCEL === "1" && userAgent.includes("vercel-cron/1.0");
+}
+
+async function handleReminderRun(request: NextRequest) {
+  if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,4 +36,12 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function GET(request: NextRequest) {
+  return handleReminderRun(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handleReminderRun(request);
 }

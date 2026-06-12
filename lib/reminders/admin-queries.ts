@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function getDueEmailRemindersAdmin() {
+export async function getDueSmsRemindersAdmin() {
   const supabase = createAdminClient();
   const now = new Date().toISOString();
 
@@ -20,8 +20,8 @@ export async function getDueEmailRemindersAdmin() {
     `)
     .eq("status", "scheduled")
     .eq("reminder_status", "pending")
-    .eq("reminder_channel", "email")
-    .eq("contact_type", "email")
+    .eq("reminder_channel", "sms")
+    .eq("contact_type", "phone")
     .lte("reminder_scheduled_for", now)
     .order("reminder_scheduled_for", { ascending: true })
     .limit(100);

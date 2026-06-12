@@ -1,7 +1,7 @@
 import "server-only";
-import { buildReminderEmail } from "@/lib/reminders/templates";
-import { sendReminderEmail } from "@/lib/reminders/send-email";
-import { getDueEmailRemindersAdmin } from "@/lib/reminders/admin-queries";
+import { getDueSmsRemindersAdmin } from "@/lib/reminders/admin-queries";
+import { sendReminderSms } from "@/lib/reminders/send-sms";
+import { renderReminderTemplate } from "@/lib/reminders/render-template";
 import {
   insertMessageLogAdmin,
   markReminderFailedAdmin,
@@ -10,8 +10,11 @@ import {
 import { claimReminderForProcessing } from "@/lib/reminders/admin-claim";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const DEFAULT_SMS_BODY =
+  "Σας υπενθυμίζουμε το ραντεβού σας στο {business_name} στις {appointment_date} και ώρα {appointment_time}.";
+
 export async function processDueRemindersAdmin() {
-  const dueAppointments = await getDueEmailRemindersAdmin();
+  const dueAppointments = await getDueSmsRemindersAdmin();
   const supabase = createAdminClient();
 
   const results: Array<{
@@ -34,38 +37,37 @@ export async function processDueRemindersAdmin() {
       continue;
     }
 
+    let smsText = "Reminder SMS failed before final delivery.";
+
     try {
       const { data: profile } = await supabase
-  .from("profiles")
-  .select("business_name, reminder_email_subject, reminder_email_body, reminder_sms_body")
-  .eq("user_id", appointment.user_id)
-  .single();
-      const emailContent = buildReminderEmail({
-  clientName: appointment.client_name,
-  appointmentAt: appointment.appointment_at,
-  businessName: profile?.business_name ?? null,
-  subjectTemplate: profile?.reminder_email_subject ?? "Υπενθύμιση ραντεβού",
-  bodyTemplate:
-    profile?.reminder_email_body ??
-    "Σας υπενθυμίζουμε το ραντεβού σας στο {business_name} στις {appointment_date} και ώρα {appointment_time}.",
-});
+        .from("profiles")
+        .select("business_name, reminder_sms_body")
+        .eq("user_id", appointment.user_id)
+        .single();
 
-      const sendResult = await sendReminderEmail({
+      smsText = renderReminderTemplate(
+        profile?.reminder_sms_body?.trim() || DEFAULT_SMS_BODY,
+        {
+          clientName: appointment.client_name,
+          appointmentAt: appointment.appointment_at,
+          businessName: profile?.business_name ?? null,
+        }
+      );
+
+      const sendResult = await sendReminderSms({
         to: appointment.contact_value,
-        subject: emailContent.subject,
-        text: emailContent.text,
-        html: emailContent.html,
+        text: smsText,
       });
 
       await insertMessageLogAdmin({
         appointmentId: appointment.id,
         userId: appointment.user_id,
-        channel: "email",
+        channel: "sms",
         recipient: appointment.contact_value,
-        subject: emailContent.subject,
-        messageBody: emailContent.text,
-        provider: "resend",
-        providerMessageId: sendResult.data?.id ?? null,
+        messageBody: smsText,
+        provider: "vonage",
+        providerMessageId: sendResult.messageId,
         deliveryStatus: "sent",
       });
 
@@ -82,11 +84,10 @@ export async function processDueRemindersAdmin() {
         await insertMessageLogAdmin({
           appointmentId: appointment.id,
           userId: appointment.user_id,
-          channel: "email",
+          channel: "sms",
           recipient: appointment.contact_value,
-          subject: "Υπενθύμιση ραντεβού",
-          messageBody: "Reminder email failed before final delivery.",
-          provider: "resend",
+          messageBody: smsText,
+          provider: "vonage",
           deliveryStatus: "failed",
           errorMessage: message,
         });
