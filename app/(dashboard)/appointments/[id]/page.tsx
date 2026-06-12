@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EditAppointmentForm } from "@/components/appointments/edit-appointment-form";
+import { completeElapsedAppointments } from "@/lib/appointments/status";
 
 export default async function AppointmentDetailPage({
   params,
@@ -18,6 +19,8 @@ export default async function AppointmentDetailPage({
     notFound();
   }
 
+  await completeElapsedAppointments(user.id);
+
   const { data: appointment, error } = await supabase
     .from("appointments")
     .select("*")
@@ -30,10 +33,10 @@ export default async function AppointmentDetailPage({
   }
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-6 p-5 md:p-8">
       <div>
         <p className="text-sm text-slate-500">Appointments</p>
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-3xl font-semibold">
           Επεξεργασία ραντεβού
         </h1>
       </div>

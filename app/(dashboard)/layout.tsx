@@ -18,8 +18,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto flex min-h-screen max-w-7xl">
+    <div className="app-shell">
+      <div className="mx-auto flex min-h-screen max-w-[1500px] flex-col md:flex-row">
         <AppSidebar />
         <main className="flex-1 min-w-0">{children}</main>
       </div>

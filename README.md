@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RemindMeUp
 
-## Getting Started
+Appointment management application built with Next.js and Supabase.
 
-First, run the development server:
+## Local Development
+
+1. Copy the environment variables from `.env.example` into `.env.local`.
+2. Add the Supabase project URL and keys.
+3. Run:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The local application opens at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Production Pilot For The Dental Office
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Do not enter real patient or client data before completing these steps.
 
-## Learn More
+1. Create a dedicated Supabase production project in an EU region.
+2. Run the SQL migrations in order from `supabase/migrations/` in the Supabase SQL Editor.
+3. In Supabase Authentication, enable email confirmation and create or invite the office user.
+4. Deploy the project to Vercel and add the production environment variables.
+5. Set `ALLOW_PUBLIC_SIGNUP=false` in Vercel for the initial pilot.
+6. Connect a custom domain, for example `app.remindmeup.gr`.
+7. Enable an appropriate Supabase backup plan and test downloading an export from Settings.
+8. Test sign-in, creation of a client, creation/editing of an appointment, exports, and the mobile layout before daily use.
 
-To learn more about Next.js, take a look at the following resources:
+## Data Protection
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The app stores names, mobile phone numbers, appointments, and notes. For a dental practice these can involve sensitive personal data. Use client notes only for minimal administrative information until legal/GDPR requirements for clinical or health-related notes have been addressed.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The migration `20260526090000_secure_user_data.sql` enables Row Level Security policies so authenticated users can access only their own profiles, clients, appointments, and message logs.
 
-## Deploy on Vercel
+## Accounts And Platform Administration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+For the first office pilot, registration is invitation-only: keep `ALLOW_PUBLIC_SIGNUP=false` and create the office account through Supabase Authentication. The platform owner manages deployments through the Git repository, Vercel, and Supabase, without needing routine access to client data.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Before selling the app to another business, the database must be expanded to support organizations/clinics and staff membership roles so multiple people at the same office can collaborate while separate businesses remain isolated.
+
+## Reminders
+
+The interface is configured for SMS reminders, but the current server sender is still email-based and does not deliver SMS. An SMS provider and delivery testing must be completed before SMS reminders are used operationally.

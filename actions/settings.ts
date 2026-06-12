@@ -17,10 +17,14 @@ export async function updateSettings(
   const rawData = {
     fullName: String(formData.get("fullName") ?? ""),
     businessName: String(formData.get("businessName") ?? ""),
-    defaultReminderChannel: String(formData.get("defaultReminderChannel") ?? "email"),
+    defaultReminderChannel: "sms",
     defaultReminderOffsetMinutes: Number(
       formData.get("defaultReminderOffsetMinutes") ?? 1440
     ),
+    workdayStartTime: String(formData.get("workdayStartTime") ?? "09:00"),
+    workdayEndTime: String(formData.get("workdayEndTime") ?? "17:00"),
+    slotIntervalMinutes: Number(formData.get("slotIntervalMinutes") ?? 30),
+    reminderSmsBody: String(formData.get("reminderSmsBody") ?? ""),
   };
 
   const parsed = updateSettingsSchema.safeParse(rawData);
@@ -53,7 +57,12 @@ export async function updateSettings(
       full_name: parsed.data.fullName,
       business_name: parsed.data.businessName,
       default_reminder_channel: parsed.data.defaultReminderChannel,
-      default_reminder_offset_minutes: parsed.data.defaultReminderOffsetMinutes,
+      default_reminder_offset_minutes:
+        parsed.data.defaultReminderOffsetMinutes,
+      workday_start_time: parsed.data.workdayStartTime,
+      workday_end_time: parsed.data.workdayEndTime,
+      slot_interval_minutes: parsed.data.slotIntervalMinutes,
+      reminder_sms_body: parsed.data.reminderSmsBody,
     })
     .eq("user_id", user.id);
 

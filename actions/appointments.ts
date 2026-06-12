@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAppointmentSchema } from "@/lib/validations/appointment";
+import { upsertClientFromContact } from "@/lib/clients/queries";
 import { combineDateAndTime, subtractMinutes } from "@/lib/utils/dates";
 
 type ActionState = {
@@ -16,6 +17,7 @@ export async function createAppointment(
   formData: FormData
 ): Promise<ActionState> {
   const rawData = {
+    clientId: String(formData.get("clientId") ?? ""),
     clientName: String(formData.get("clientName") ?? ""),
     contactType: String(formData.get("contactType") ?? ""),
     contactValue: String(formData.get("contactValue") ?? ""),
@@ -69,8 +71,21 @@ export async function createAppointment(
     data.reminderOffsetMinutes
   );
 
-  const { error: insertError } = await supabase.from("appointments").insert({
+  let clientId = rawData.clientId || null;
+
+  if (!clientId) {
+    try {
+      clientId = await upsertClientFromContact(supabase, {
+        userId: user.id,
+        name: data.clientName,
+        phone: data.contactValue,
+      });
+    } catch {}
+  }
+
+  const appointmentPayload = {
     user_id: user.id,
+    client_id: clientId,
     client_name: data.clientName,
     contact_type: data.contactType,
     contact_value: data.contactValue,
@@ -82,7 +97,18 @@ export async function createAppointment(
     reminder_offset_minutes: data.reminderOffsetMinutes,
     reminder_scheduled_for: reminderScheduledFor.toISOString(),
     reminder_status: "pending",
-  });
+  };
+
+  let { error: insertError } = await supabase
+    .from("appointments")
+    .insert(appointmentPayload);
+
+  if (insertError && insertError.code === "42703") {
+    const { client_id: _clientId, ...fallbackPayload } = appointmentPayload;
+    void _clientId;
+    const fallback = await supabase.from("appointments").insert(fallbackPayload);
+    insertError = fallback.error;
+  }
 
   if (insertError) {
     return {
@@ -92,6 +118,7 @@ export async function createAppointment(
   }
 
   revalidatePath("/appointments");
+  revalidatePath("/clients");
   revalidatePath("/dashboard");
 
   return {
@@ -107,6 +134,7 @@ export async function updateAppointment(
   const id = String(formData.get("id") ?? "");
 
   const rawData = {
+    clientId: String(formData.get("clientId") ?? ""),
     clientName: String(formData.get("clientName") ?? ""),
     contactType: String(formData.get("contactType") ?? ""),
     contactValue: String(formData.get("contactValue") ?? ""),
@@ -169,6 +197,18 @@ export async function updateAppointment(
     data.reminderOffsetMinutes
   );
 
+  let clientId = rawData.clientId || null;
+
+  if (!clientId) {
+    try {
+      clientId = await upsertClientFromContact(supabase, {
+        userId: user.id,
+        name: data.clientName,
+        phone: data.contactValue,
+      });
+    } catch {}
+  }
+
   const nextReminderStatus =
     existingAppointment.reminder_status === "sent"
       ? "sent"
@@ -176,29 +216,45 @@ export async function updateAppointment(
       ? "cancelled"
       : "pending";
 
-  const { error: updateError } = await supabase
+  const appointmentUpdatePayload = {
+    client_id: clientId,
+    client_name: data.clientName,
+    contact_type: data.contactType,
+    contact_value: data.contactValue,
+    appointment_at: appointmentAt.toISOString(),
+    duration_minutes: data.durationMinutes,
+    notes: data.notes || null,
+    reminder_channel: data.reminderChannel,
+    reminder_offset_minutes: data.reminderOffsetMinutes,
+    reminder_scheduled_for: reminderScheduledFor.toISOString(),
+    reminder_status: nextReminderStatus,
+    status: existingAppointment.status,
+  };
+
+  let { error: updateError } = await supabase
     .from("appointments")
-    .update({
-      client_name: data.clientName,
-      contact_type: data.contactType,
-      contact_value: data.contactValue,
-      appointment_at: appointmentAt.toISOString(),
-      duration_minutes: data.durationMinutes,
-      notes: data.notes || null,
-      reminder_channel: data.reminderChannel,
-      reminder_offset_minutes: data.reminderOffsetMinutes,
-      reminder_scheduled_for: reminderScheduledFor.toISOString(),
-      reminder_status: nextReminderStatus,
-      status: existingAppointment.status,
-    })
+    .update(appointmentUpdatePayload)
     .eq("id", id)
     .eq("user_id", user.id);
+
+  if (updateError && updateError.code === "42703") {
+    const { client_id: _clientId, ...fallbackPayload } =
+      appointmentUpdatePayload;
+    void _clientId;
+    const fallback = await supabase
+      .from("appointments")
+      .update(fallbackPayload)
+      .eq("id", id)
+      .eq("user_id", user.id);
+    updateError = fallback.error;
+  }
 
   if (updateError) {
     return { success: false, message: `DB error: ${updateError.message}` };
   }
 
   revalidatePath("/appointments");
+  revalidatePath("/clients");
   revalidatePath(`/appointments/${id}`);
   revalidatePath("/dashboard");
   revalidatePath("/logs");

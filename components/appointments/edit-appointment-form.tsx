@@ -39,6 +39,8 @@ export function EditAppointmentForm({
     cancelAppointment,
     initialState
   );
+  const contactType = "phone";
+  const derivedReminderChannel = "sms";
 
   useEffect(() => {
     if (updateState.success) {
@@ -59,16 +61,21 @@ export function EditAppointmentForm({
   return (
     <div className="space-y-6">
       {message && !updateState.success && !cancelState.success ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {message}
         </div>
       ) : null}
 
       <form
         action={updateAction}
-        className="rounded-3xl border bg-white p-6 shadow-sm space-y-6"
+        className="app-panel rounded-lg p-6 space-y-6"
       >
         <input type="hidden" name="id" value={appointment.id} />
+        <input
+          type="hidden"
+          name="reminderChannel"
+          value={derivedReminderChannel}
+        />
 
         <div className="grid gap-6 md:grid-cols-2">
           <Field
@@ -81,7 +88,7 @@ export function EditAppointmentForm({
               id="clientName"
               name="clientName"
               defaultValue={appointment.client_name}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
             />
           </Field>
 
@@ -90,19 +97,25 @@ export function EditAppointmentForm({
             htmlFor="contactType"
             error={fieldErrors.contactType?.[0]}
           >
-            <select
-              id="contactType"
-              name="contactType"
-              defaultValue={appointment.contact_type}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
-            >
-              <option value="email">Email</option>
-              <option value="phone">Κινητό</option>
-            </select>
+            <div className="space-y-2">
+              <select
+                id="contactType"
+                name="contactType"
+                defaultValue={contactType}
+                className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
+              >
+                <option value="phone">Κινητό</option>
+              </select>
+
+              <p className="text-xs text-slate-500">
+                Το κανάλι reminder θα οριστεί αυτόματα:{" "}
+                SMS.
+              </p>
+            </div>
           </Field>
 
           <Field
-            label="Email ή κινητό"
+            label="Κινητό"
             htmlFor="contactValue"
             error={fieldErrors.contactValue?.[0]}
           >
@@ -110,7 +123,7 @@ export function EditAppointmentForm({
               id="contactValue"
               name="contactValue"
               defaultValue={appointment.contact_value}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
             />
           </Field>
 
@@ -124,7 +137,7 @@ export function EditAppointmentForm({
               name="appointmentDate"
               type="date"
               defaultValue={dateTime.date}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
             />
           </Field>
 
@@ -138,7 +151,7 @@ export function EditAppointmentForm({
               name="appointmentTime"
               type="time"
               defaultValue={dateTime.time}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
             />
           </Field>
 
@@ -154,24 +167,8 @@ export function EditAppointmentForm({
               min={5}
               step={5}
               defaultValue={appointment.duration_minutes}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
             />
-          </Field>
-
-          <Field
-            label="Κανάλι reminder"
-            htmlFor="reminderChannel"
-            error={fieldErrors.reminderChannel?.[0]}
-          >
-            <select
-              id="reminderChannel"
-              name="reminderChannel"
-              defaultValue={appointment.reminder_channel}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
-            >
-              <option value="email">Email</option>
-              <option value="sms">SMS</option>
-            </select>
           </Field>
 
           <Field
@@ -183,7 +180,7 @@ export function EditAppointmentForm({
               id="reminderOffsetMinutes"
               name="reminderOffsetMinutes"
               defaultValue={String(appointment.reminder_offset_minutes)}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
             >
               <option value="1440">24 ώρες πριν</option>
               <option value="180">3 ώρες πριν</option>
@@ -203,7 +200,7 @@ export function EditAppointmentForm({
               name="notes"
               rows={4}
               defaultValue={appointment.notes ?? ""}
-              className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+              className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
             />
           </Field>
         </div>
@@ -217,7 +214,7 @@ export function EditAppointmentForm({
           <button
             type="submit"
             disabled={isUpdating}
-            className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
+            className="primary-action rounded-lg px-5 py-3 text-sm font-medium disabled:opacity-60"
           >
             {isUpdating ? "Αποθήκευση..." : "Αποθήκευση αλλαγών"}
           </button>
@@ -227,7 +224,7 @@ export function EditAppointmentForm({
       {appointment.status !== "cancelled" ? (
         <form
           action={cancelAction}
-          className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm"
+          className="rounded-lg border border-red-200 bg-red-50/90 p-6 shadow-sm"
         >
           <input type="hidden" name="id" value={appointment.id} />
 
@@ -245,7 +242,7 @@ export function EditAppointmentForm({
             <button
               type="submit"
               disabled={isCancelling}
-              className="rounded-2xl bg-red-600 px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
+              className="rounded-lg bg-red-600 px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
             >
               {isCancelling ? "Ακύρωση..." : "Ακύρωση ραντεβού"}
             </button>

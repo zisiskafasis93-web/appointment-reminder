@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Appointment Reminder",
-  description: "Appointment reminder app for professionals",
+  title: "RemindMeUp",
+  description: "Reminder app for professionals",
 };
 
 export default function RootLayout({

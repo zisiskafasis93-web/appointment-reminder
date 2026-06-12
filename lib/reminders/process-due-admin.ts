@@ -36,16 +36,19 @@ export async function processDueRemindersAdmin() {
 
     try {
       const { data: profile } = await supabase
-        .from("profiles")
-        .select("business_name")
-        .eq("user_id", appointment.user_id)
-        .single();
-
+  .from("profiles")
+  .select("business_name, reminder_email_subject, reminder_email_body, reminder_sms_body")
+  .eq("user_id", appointment.user_id)
+  .single();
       const emailContent = buildReminderEmail({
-        clientName: appointment.client_name,
-        appointmentAt: appointment.appointment_at,
-        businessName: profile?.business_name ?? null,
-      });
+  clientName: appointment.client_name,
+  appointmentAt: appointment.appointment_at,
+  businessName: profile?.business_name ?? null,
+  subjectTemplate: profile?.reminder_email_subject ?? "Υπενθύμιση ραντεβού",
+  bodyTemplate:
+    profile?.reminder_email_body ??
+    "Σας υπενθυμίζουμε το ραντεβού σας στο {business_name} στις {appointment_date} και ώρα {appointment_time}.",
+});
 
       const sendResult = await sendReminderEmail({
         to: appointment.contact_value,

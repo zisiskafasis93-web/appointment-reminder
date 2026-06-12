@@ -1,17 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f5f4f8;
+  --foreground: #211d31;
+  --panel: rgba(255, 255, 255, 0.92);
+  --panel-strong: #ffffff;
+  --line: #e3dfeb;
+  --line-strong: #d6d0e1;
+  --muted: #696579;
+  --brand: #302a47;
+  --brand-strong: #242034;
+  --accent: #7766c2;
+  --accent-soft: #eeebfa;
+  --accent-mist: #f7f5fc;
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--background);
+  background: linear-gradient(180deg, #fbfaff 0%, var(--background) 42%, #f1f0f5 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Aptos", "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0;
 }
 
 * {
@@ -26,16 +37,123 @@ a {
 input,
 textarea,
 select {
-  background: white;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--foreground);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #94a3b8;
+  color: #9892a5;
 }
 
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+select,
+button {
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(119, 102, 194, 0.62);
+  box-shadow: 0 0 0 4px rgba(119, 102, 194, 0.13);
+  outline: none;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: transparent;
+}
+
+.app-panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow:
+    0 1px 1px rgba(34, 28, 51, 0.02),
+    0 14px 34px rgba(34, 28, 51, 0.055);
+  backdrop-filter: blur(10px);
+}
+
+.app-panel input,
+.app-panel textarea,
+.app-panel select {
+  border-color: var(--line);
+}
+
+.primary-action {
+  background: var(--brand);
+  color: white;
+  border: 1px solid var(--brand);
+  box-shadow: 0 8px 18px rgba(48, 42, 71, 0.16);
+}
+
+.primary-action:hover {
+  background: var(--brand-strong);
+  border-color: var(--brand-strong);
+}
+
+.secondary-action {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  color: #433e54;
+}
+
+.secondary-action:hover {
+  background: var(--accent-mist);
+  border-color: var(--line-strong);
+}
+
+main h1 {
+  color: #1f1b2e;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+main h2,
+main h3 {
+  color: #28233a;
+  letter-spacing: 0;
+}
+
+.table-head {
+  background: #f7f5fb;
+  color: #615b73;
+}
+
+.stat-surface {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-surface::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  content: "";
+  background: linear-gradient(90deg, #7766c2, #c3bbeb);
+}
+
+.soft-accent-surface {
+  border: 1px solid #e5dff2;
+  background: #faf9fe;
+}
+
+.mobile-nav {
+  scrollbar-width: none;
+}
+
+.mobile-nav::-webkit-scrollbar {
+  display: none;
 }

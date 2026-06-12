@@ -14,6 +14,10 @@ type ProfileRecord = {
   business_name: string | null;
   default_reminder_channel: "email" | "sms";
   default_reminder_offset_minutes: number;
+  workday_start_time: string;
+  workday_end_time: string;
+  slot_interval_minutes: number;
+  reminder_sms_body: string;
 };
 
 export function SettingsForm({ profile }: { profile: ProfileRecord }) {
@@ -21,9 +25,25 @@ export function SettingsForm({ profile }: { profile: ProfileRecord }) {
     updateSettings,
     initialState
   );
+  const defaultSmsBody =
+    "Σας υπενθυμίζουμε το ραντεβού σας στο {business_name} στις {appointment_date} και ώρα {appointment_time}.";
+  const savedSmsBody = profile.reminder_sms_body?.trim() ?? "";
+  const isOldDefaultSmsBody =
+    !savedSmsBody ||
+    savedSmsBody.startsWith("Υπενθύμιση:") ||
+    (savedSmsBody.includes("{client_name}") &&
+      !savedSmsBody.includes("{business_name}"));
+  const smsBody =
+    isOldDefaultSmsBody ? defaultSmsBody : savedSmsBody;
 
   return (
-    <form action={formAction} className="rounded-3xl border bg-white p-6 shadow-sm space-y-6">
+    <form action={formAction} className="app-panel rounded-lg p-6 space-y-6">
+      <input
+        type="hidden"
+        name="slotIntervalMinutes"
+        value={profile.slot_interval_minutes}
+      />
+
       {state.message ? (
         <div
           className={`rounded-2xl px-4 py-3 text-sm ${
@@ -46,7 +66,7 @@ export function SettingsForm({ profile }: { profile: ProfileRecord }) {
             id="fullName"
             name="fullName"
             defaultValue={profile.full_name ?? ""}
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           />
         </Field>
 
@@ -59,9 +79,56 @@ export function SettingsForm({ profile }: { profile: ProfileRecord }) {
             id="businessName"
             name="businessName"
             defaultValue={profile.business_name ?? ""}
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           />
         </Field>
+
+	<Field
+  label="Έναρξη ημέρας"
+  htmlFor="workdayStartTime"
+  error={state.fieldErrors?.workdayStartTime?.[0]}
+>
+  <input
+    id="workdayStartTime"
+    name="workdayStartTime"
+    type="time"
+    defaultValue={profile.workday_start_time}
+    className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
+  />
+</Field>
+
+<Field
+  label="Λήξη ημέρας"
+  htmlFor="workdayEndTime"
+  error={state.fieldErrors?.workdayEndTime?.[0]}
+>
+  <input
+    id="workdayEndTime"
+    name="workdayEndTime"
+    type="time"
+    defaultValue={profile.workday_end_time}
+    className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
+  />
+</Field>
+
+<Field
+  label="Κείμενο SMS reminder"
+  htmlFor="reminderSmsBody"
+  error={state.fieldErrors?.reminderSmsBody?.[0]}
+  className="md:col-span-2"
+>
+  <textarea
+    key={smsBody}
+    id="reminderSmsBody"
+    name="reminderSmsBody"
+    rows={4}
+    defaultValue={smsBody}
+    className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
+  />
+<p className="text-xs text-slate-500">
+  Διαθέσιμα placeholders: {"{client_name}"}, {"{appointment_date}"}, {"{appointment_time}"}, {"{business_name}"}
+</p>
+</Field>
 
         <Field
           label="Default κανάλι reminder"
@@ -71,10 +138,9 @@ export function SettingsForm({ profile }: { profile: ProfileRecord }) {
           <select
             id="defaultReminderChannel"
             name="defaultReminderChannel"
-            defaultValue={profile.default_reminder_channel}
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900"
+            defaultValue="sms"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
           >
-            <option value="email">Email</option>
             <option value="sms">SMS</option>
           </select>
         </Field>
@@ -88,7 +154,7 @@ export function SettingsForm({ profile }: { profile: ProfileRecord }) {
             id="defaultReminderOffsetMinutes"
             name="defaultReminderOffsetMinutes"
             defaultValue={String(profile.default_reminder_offset_minutes)}
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
           >
             <option value="1440">24 ώρες πριν</option>
             <option value="180">3 ώρες πριν</option>
@@ -102,7 +168,7 @@ export function SettingsForm({ profile }: { profile: ProfileRecord }) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
+          className="primary-action rounded-lg px-5 py-3 text-sm font-medium disabled:opacity-60"
         >
           {isPending ? "Αποθήκευση..." : "Αποθήκευση ρυθμίσεων"}
         </button>
@@ -116,14 +182,16 @@ function Field({
   htmlFor,
   error,
   children,
+  className = "",
 }: {
   label: string;
   htmlFor: string;
   error?: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       <label htmlFor={htmlFor} className="text-sm font-medium">
         {label}
       </label>

@@ -1,39 +1,35 @@
+import { renderReminderTemplate } from "@/lib/reminders/render-template";
+
 type BuildReminderEmailParams = {
   clientName: string;
   appointmentAt: string;
   businessName?: string | null;
+  subjectTemplate: string;
+  bodyTemplate: string;
 };
 
 export function buildReminderEmail({
   clientName,
   appointmentAt,
   businessName,
+  subjectTemplate,
+  bodyTemplate,
 }: BuildReminderEmailParams) {
-  const formattedDate = new Intl.DateTimeFormat("el-GR", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(new Date(appointmentAt));
+  const subject = renderReminderTemplate(subjectTemplate, {
+    clientName,
+    appointmentAt,
+    businessName,
+  });
 
-  const subject = "Υπενθύμιση ραντεβού";
-
-  const text = `Καλησπέρα ${clientName},
-
-σας υπενθυμίζουμε το ραντεβού σας ${businessName ? `με το ${businessName}` : ""} στις ${formattedDate}.
-
-Αν δεν μπορείτε να παρευρεθείτε, παρακαλούμε επικοινωνήστε μαζί μας.
-
-Ευχαριστούμε.`;
+  const text = renderReminderTemplate(bodyTemplate, {
+    clientName,
+    appointmentAt,
+    businessName,
+  });
 
   const html = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #0f172a;">
-      <p>Καλησπέρα ${escapeHtml(clientName)},</p>
-      <p>
-        Σας υπενθυμίζουμε το ραντεβού σας
-        ${businessName ? ` με το <strong>${escapeHtml(businessName)}</strong>` : ""}
-        στις <strong>${formattedDate}</strong>.
-      </p>
-      <p>Αν δεν μπορείτε να παρευρεθείτε, παρακαλούμε επικοινωνήστε μαζί μας.</p>
-      <p>Ευχαριστούμε.</p>
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #0f172a; white-space: pre-line;">
+      ${escapeHtml(text).replace(/\n/g, "<br />")}
     </div>
   `;
 

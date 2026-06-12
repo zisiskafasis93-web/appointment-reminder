@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AppointmentStatusBadge } from "@/components/appointments/appointment-status-badge";
 import { ReminderStatusBadge } from "@/components/appointments/reminder-status-badge";
+import { completeElapsedAppointments } from "@/lib/appointments/status";
 
 export default async function AppointmentsPage({
   searchParams,
@@ -19,13 +20,15 @@ export default async function AppointmentsPage({
     return <div>Δεν βρέθηκε χρήστης.</div>;
   }
 
+  await completeElapsedAppointments(user.id);
+
   const search = typeof params.search === "string" ? params.search.trim() : "";
   const status = typeof params.status === "string" ? params.status : "all";
 
   let query = supabase
     .from("appointments")
     .select(
-      "id, client_name, contact_type, contact_value, appointment_at, status, reminder_channel, reminder_status, notes"
+      "id, client_name, contact_type, contact_value, appointment_at, status, reminder_channel, reminder_status"
     )
     .eq("user_id", user.id)
     .order("appointment_at", { ascending: true });
@@ -36,7 +39,7 @@ export default async function AppointmentsPage({
 
   if (search) {
     query = query.or(
-      `client_name.ilike.%${search}%,contact_value.ilike.%${search}%,notes.ilike.%${search}%`
+      `client_name.ilike.%${search}%,contact_value.ilike.%${search}%`
     );
   }
 
@@ -52,11 +55,11 @@ export default async function AppointmentsPage({
       : null;
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-6 p-5 md:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm text-slate-500">Appointments</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Ραντεβού</h1>
+          <h1 className="text-3xl font-semibold">Ραντεβού</h1>
           <p className="text-sm text-slate-500 mt-2">
             Παρακολούθησε τα ραντεβού και βρες γρήγορα αυτό που θέλεις.
           </p>
@@ -64,32 +67,32 @@ export default async function AppointmentsPage({
 
         <Link
           href="/appointments/new"
-          className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-5 py-3 text-sm font-medium text-slate-900 ring-1 ring-slate-200 hover:bg-slate-200"
+          className="primary-action inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-medium"
         >
           + Νέο ραντεβού
         </Link>
       </div>
 
       {successMessage ? (
-        <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-800">
           {successMessage}
         </div>
       ) : null}
 
-      <form className="rounded-3xl border bg-white p-4 shadow-sm">
+      <form className="app-panel rounded-lg p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_220px_auto]">
           <input
             type="text"
             name="search"
             defaultValue={search}
-            placeholder="Αναζήτηση με όνομα, email, κινητό ή σημείωση"
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+            placeholder="Αναζήτηση με όνομα ή κινητό"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           />
 
           <select
             name="status"
             defaultValue={status}
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
           >
             <option value="all">Όλα</option>
             <option value="scheduled">Προγραμματισμένα</option>
@@ -99,14 +102,14 @@ export default async function AppointmentsPage({
 
           <button
             type="submit"
-            className="rounded-2xl border px-4 py-3 text-sm font-medium"
+            className="secondary-action rounded-lg px-4 py-3 text-sm font-medium"
           >
-            Φιλτράρισμα
+            Αναζήτηση
           </button>
         </div>
       </form>
 
-      <div className="rounded-3xl border bg-white shadow-sm overflow-hidden">
+      <div className="app-panel overflow-hidden rounded-lg">
         {error ? (
           <div className="p-6 text-sm text-red-600">
             Δεν φορτώθηκαν τα ραντεβού.
@@ -121,7 +124,7 @@ export default async function AppointmentsPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-slate-500">
+              <thead className="table-head text-left">
                 <tr>
                   <th className="px-6 py-4 font-medium">Πελάτης</th>
                   <th className="px-6 py-4 font-medium">Επικοινωνία</th>
@@ -133,7 +136,7 @@ export default async function AppointmentsPage({
               </thead>
               <tbody>
                 {appointments.map((appointment) => (
-                  <tr key={appointment.id} className="border-t align-top">
+                  <tr key={appointment.id} className="border-t border-slate-200/80 align-top hover:bg-white/70">
                     <td className="px-6 py-4 font-medium">
                       {appointment.client_name}
                     </td>

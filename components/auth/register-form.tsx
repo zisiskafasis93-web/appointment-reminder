@@ -15,7 +15,7 @@ export function RegisterForm() {
     <form action={formAction} className="space-y-4">
       {state.message ? (
         <div
-          className={`rounded-2xl px-4 py-3 text-sm ${
+          className={`rounded-lg px-4 py-3 text-sm ${
             state.success
               ? "border border-green-200 bg-green-50 text-green-700"
               : "border border-red-200 bg-red-50 text-red-700"
@@ -26,13 +26,13 @@ export function RegisterForm() {
       ) : null}
 
       <div className="space-y-2">
-        <label htmlFor="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400">
+        <label htmlFor="fullName" className="text-sm font-medium">
           Ονοματεπώνυμο
         </label>
         <input
           id="fullName"
           name="fullName"
-          className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+          className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           placeholder="π.χ. Νίκος Παπαδόπουλος"
         />
       </div>
@@ -44,7 +44,7 @@ export function RegisterForm() {
         <input
           id="businessName"
           name="businessName"
-          className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+          className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           placeholder="π.χ. Dental Care Studio"
         />
       </div>
@@ -57,7 +57,7 @@ export function RegisterForm() {
           id="email"
           name="email"
           type="email"
-          className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+          className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           placeholder="you@example.com"
         />
       </div>
@@ -70,7 +70,7 @@ export function RegisterForm() {
           id="password"
           name="password"
           type="password"
-          className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+          className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           placeholder="τουλάχιστον 6 χαρακτήρες"
         />
       </div>
@@ -78,7 +78,7 @@ export function RegisterForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
+        className="primary-action w-full rounded-lg px-5 py-3 text-sm font-medium disabled:opacity-60"
       >
         {isPending ? "Δημιουργία..." : "Δημιουργία λογαριασμού"}
       </button>

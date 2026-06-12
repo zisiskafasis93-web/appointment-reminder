@@ -53,10 +53,10 @@ export default async function LogsPage({
   const { data: logs, error } = await query;
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-6 p-5 md:p-8">
       <div>
         <p className="text-sm text-slate-500">Logs</p>
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-3xl font-semibold">
           Ιστορικό αποστολών
         </h1>
         <p className="text-sm text-slate-500 mt-2">
@@ -64,20 +64,20 @@ export default async function LogsPage({
         </p>
       </div>
 
-      <form className="rounded-3xl border bg-white p-4 shadow-sm">
+      <form className="app-panel rounded-lg p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_220px_auto]">
           <input
             type="text"
             name="search"
             defaultValue={search}
             placeholder="Αναζήτηση με recipient, subject ή error"
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900 placeholder:text-slate-400"
           />
 
           <select
             name="status"
             defaultValue={status}
-            className="w-full rounded-2xl border bg-white px-4 py-3 text-slate-900"
+            className="w-full rounded-lg border border-slate-300/80 bg-white/90 px-4 py-3 text-slate-900"
           >
             <option value="all">Όλα</option>
             <option value="sent">Sent</option>
@@ -94,7 +94,7 @@ export default async function LogsPage({
         </div>
       </form>
 
-      <div className="rounded-3xl border bg-white shadow-sm overflow-hidden">
+      <div className="app-panel overflow-hidden rounded-lg">
         {error ? (
           <div className="p-6 text-sm text-red-600">
             Δεν φορτώθηκαν τα logs αποστολών.
@@ -109,7 +109,7 @@ export default async function LogsPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-slate-500">
+              <thead className="table-head text-left">
                 <tr>
                   <th className="px-6 py-4 font-medium">Πελάτης</th>
                   <th className="px-6 py-4 font-medium">Παραλήπτης</th>
@@ -132,7 +132,7 @@ export default async function LogsPage({
                         {appointment?.client_name ?? "—"}
                       </td>
                       <td className="px-6 py-4">{log.recipient}</td>
-                      <td className="px-6 py-4 uppercase text-xs tracking-wide text-slate-600">
+                      <td className="px-6 py-4 uppercase text-xs text-slate-600">
                         {log.channel}
                       </td>
                       <td className="px-6 py-4">

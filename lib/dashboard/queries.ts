@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { completeElapsedAppointments } from "@/lib/appointments/status";
 
 export async function getDashboardData(userId: string) {
   const supabase = await createClient();
+
+  await completeElapsedAppointments(userId);
 
   const now = new Date();
   const startOfToday = new Date(
