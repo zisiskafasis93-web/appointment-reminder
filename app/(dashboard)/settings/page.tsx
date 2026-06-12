@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { BackupDownloadButtons } from "@/components/settings/backup-download-buttons";
+import { PasswordChangeForm } from "@/components/settings/password-change-form";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -36,6 +37,8 @@ export default async function SettingsPage() {
       </div>
 
       <SettingsForm profile={profile} />
+
+      <PasswordChangeForm />
 
       <section className="app-panel rounded-lg p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
